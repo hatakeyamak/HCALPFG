@@ -1,0 +1,5 @@
+/data3/store/user/borzou/ntuples/run278873_Sep7/JetHT/run278873_Sep7/160907_135550/0000/HcalTupleMaker_1.root
+/data3/store/user/borzou/ntuples/run278873_Sep7/JetHT/run278873_Sep7/160907_135550/0000/HcalTupleMaker_2.root
+/data3/store/user/borzou/ntuples/run278873_Sep7/JetHT/run278873_Sep7/160907_135550/0000/HcalTupleMaker_3.root
+/data3/store/user/borzou/ntuples/run278873_Sep7/JetHT/run278873_Sep7/160907_135550/0000/HcalTupleMaker_4.root
+/data3/store/user/borzou/ntuples/run278873_Sep7/JetHT/run278873_Sep7/160907_135550/0000/HcalTupleMaker_5.root

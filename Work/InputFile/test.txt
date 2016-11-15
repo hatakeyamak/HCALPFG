@@ -1,0 +1,4 @@
+/data3/store/user/borzou/ntuples/Aug_2016_run278406v3/JetHT/testName/0000/HcalTupleMaker_30.root
+/data3/store/user/borzou/ntuples/Aug_2016_run278406v3/JetHT/testName/0000/HcalTupleMaker_31.root
+/data3/store/user/borzou/ntuples/Aug_2016_run278406v3/JetHT/testName/0000/HcalTupleMaker_32.root
+

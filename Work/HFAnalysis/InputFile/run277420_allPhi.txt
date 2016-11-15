@@ -1,0 +1,12 @@
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_1.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_10.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_11.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_12.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_2.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_3.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_4.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_5.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_6.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_7.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_8.root
+/data3/store/user/borzou/ntuples/run277420_allPhi_Aug31/JetHT/run277420_allPhi_Aug31/160831_211715/0000/HcalTupleMaker_9.root

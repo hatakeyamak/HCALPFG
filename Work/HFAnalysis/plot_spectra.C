@@ -1,0 +1,262 @@
+
+void plot_spectra(){
+
+  //
+  // Customization
+  //
+
+  gStyle->SetTitleAlign(33);
+  gStyle->SetTitleX(.65);
+  gStyle->SetTitleY(.92);
+  gStyle->SetTitleFontSize(0.08);
+
+  //
+  // Open input root files, read in necessary histograms
+  //
+
+  TFile *_file0 = TFile::Open("OutPut/results_KH3.root");
+  TH1F *energy_anode_iphi39[13][2][2]; // ieta=29-41:13, depth:2, anode A&B:2
+  TH1F *energy_iphi39[13][2];          // ieta=29-41:13, depth:2
+  TH1F *energy_iphi35[13][2];          // ieta=29-41:13, depth:2
+  TH1F *energy_iphi43[13][2];          // ieta=29-41:13, depth:2
+
+  char tmp[40];
+
+  for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
+    int ieta=ieta_bin+29;
+    if (ieta==40) continue;
+
+    for (int idepth_bin=0; idepth_bin<=1; idepth_bin++){
+      int idepth=idepth_bin+1;
+
+      sprintf(tmp,"ieta%d_iphi39_depth%d",ieta,idepth);
+      //std::cout << tmp << std::endl;
+      energy_iphi35[ieta_bin][idepth_bin] = (TH1F*)_file0->Get(tmp);
+
+      sprintf(tmp,"ieta%d_iphi35_depth%d",ieta,idepth);
+      energy_iphi39[ieta_bin][idepth_bin] = (TH1F*)_file0->Get(tmp);
+
+      sprintf(tmp,"ieta%d_iphi43_depth%d",ieta,idepth);
+      energy_iphi43[ieta_bin][idepth_bin] = (TH1F*)_file0->Get(tmp);
+
+      for (int ianode_bin=0; ianode_bin<=1; ianode_bin++){
+	if      (ianode_bin==0) sprintf(tmp,"AnodeA_ieta%d_iphi39_depth%d",ieta,idepth);
+	else if (ianode_bin==1) sprintf(tmp,"AnodeB_ieta%d_iphi39_depth%d",ieta,idepth);
+	std::cout << tmp << std::endl;
+	energy_anode_iphi39[ieta_bin][idepth_bin][ianode_bin] = (TH1F*)_file0->Get(tmp);
+      } // ianode_bin
+
+    }   // idepth_bin
+  }     // ieta_bin
+
+
+  //
+  // Plotting
+  //
+  TCanvas *c1 = new TCanvas("c_HFP_depth1","c1_HFP_depth1",1600,1200);
+  TLegend* catLeg1 = new TLegend(0.55,0.5,0.9,0.85);
+  catLeg1->SetTextSize(0.064);
+  catLeg1->SetTextFont(42);
+  catLeg1->SetLineColor(0);
+
+  c1->Divide(3,4);
+  for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
+    int ieta=ieta_bin+29;
+    if (ieta==40) continue;
+    if (ieta>40) c1->cd(ieta_bin); // skip ieta=40
+    else         c1->cd(ieta_bin+1);
+    gPad->SetLogy();
+    gPad->SetTopMargin(0.02);
+    gPad->SetBottomMargin(0.16);
+    gPad->SetRightMargin(0.04);
+    gPad->SetLeftMargin(0.16);
+
+    energy_iphi39[ieta_bin][0]->SetMinimum(0.8);
+    energy_iphi39[ieta_bin][0]->GetXaxis()->SetTitle("Energy (GeV)");
+    energy_iphi39[ieta_bin][0]->GetYaxis()->SetTitle("Number of entries");
+    energy_iphi39[ieta_bin][0]->SetTitleSize(0.08);
+    energy_iphi39[ieta_bin][0]->SetTitleSize(0.08,"X");
+    energy_iphi39[ieta_bin][0]->SetTitleSize(0.08,"Y");
+    energy_iphi39[ieta_bin][0]->SetTitleOffset(1.0,"X");
+    energy_iphi39[ieta_bin][0]->SetTitleOffset(1.0,"Y");
+    energy_iphi39[ieta_bin][0]->SetLabelSize(0.06,"X");
+    energy_iphi39[ieta_bin][0]->SetLabelSize(0.06,"Y");
+    energy_iphi39[ieta_bin][0]->SetStats(false);
+    energy_iphi39[ieta_bin][0]->SetLineColor(1);
+    energy_iphi35[ieta_bin][0]->SetLineColor(2);
+    energy_iphi43[ieta_bin][0]->SetLineColor(4);
+
+    sprintf(tmp,"ieta = %d, depth=1",ieta);
+    energy_iphi39[ieta_bin][0]->SetTitle(tmp);
+    energy_iphi39[ieta_bin][0]->Draw();
+    energy_iphi35[ieta_bin][0]->Draw("same");
+    energy_iphi43[ieta_bin][0]->Draw("same");
+
+    if (ieta_bin==0){
+      catLeg1->AddEntry(energy_iphi35[ieta_bin][0],"iphi=35: Q #times gain","l");
+      catLeg1->AddEntry(energy_iphi39[ieta_bin][0],"iphi=39: Q_{A}+Q_{B} #times gain","l");
+      catLeg1->AddEntry(energy_iphi43[ieta_bin][0],"iphi=43: Q #times gain","l");
+    }
+    catLeg1->Draw();
+   
+  }
+  c1->SaveAs("c_HFP_depth1.gif");
+  c1->SaveAs("c_HFP_depth1.pdf");
+
+  //
+  //
+  //
+  TCanvas *c2 = new TCanvas("c_HFP_depth2","c2_HFP_depth2",1600,1200);
+  TLegend* catLeg2 = new TLegend(0.55,0.5,0.9,0.85);
+  catLeg2->SetTextSize(0.064);
+  catLeg2->SetTextFont(42);
+  catLeg2->SetLineColor(0);
+
+  c2->Divide(3,4);
+  for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
+    int ieta=ieta_bin+29;
+    if (ieta==40) continue;
+    if (ieta>40) c2->cd(ieta_bin); // skip ieta=40
+    else         c2->cd(ieta_bin+1);
+    gPad->SetLogy();
+    gPad->SetTopMargin(0.02);
+    gPad->SetBottomMargin(0.16);
+    gPad->SetRightMargin(0.04);
+    gPad->SetLeftMargin(0.16);
+
+    energy_iphi39[ieta_bin][1]->SetMinimum(0.8);
+    energy_iphi39[ieta_bin][1]->GetXaxis()->SetTitle("Energy (GeV)");
+    energy_iphi39[ieta_bin][1]->GetYaxis()->SetTitle("Number of entries");
+    energy_iphi39[ieta_bin][1]->SetTitleSize(0.08);
+    energy_iphi39[ieta_bin][1]->SetTitleSize(0.08,"X");
+    energy_iphi39[ieta_bin][1]->SetTitleSize(0.08,"Y");
+    energy_iphi39[ieta_bin][1]->SetTitleOffset(1.0,"X");
+    energy_iphi39[ieta_bin][1]->SetTitleOffset(1.0,"Y");
+    energy_iphi39[ieta_bin][1]->SetLabelSize(0.06,"X");
+    energy_iphi39[ieta_bin][1]->SetLabelSize(0.06,"Y");
+    energy_iphi39[ieta_bin][1]->SetStats(false);
+    energy_iphi39[ieta_bin][1]->SetLineColor(1);
+    energy_iphi35[ieta_bin][1]->SetLineColor(2);
+    energy_iphi43[ieta_bin][1]->SetLineColor(4);
+
+    sprintf(tmp,"ieta = %d, depth=2",ieta);
+    energy_iphi39[ieta_bin][1]->SetTitle(tmp);
+    energy_iphi39[ieta_bin][1]->Draw();
+    energy_iphi35[ieta_bin][1]->Draw("same");
+    energy_iphi43[ieta_bin][1]->Draw("same");
+
+    if (ieta_bin==0){
+      catLeg2->AddEntry(energy_iphi35[ieta_bin][1],"iphi=35: Q #times gain","l");
+      catLeg2->AddEntry(energy_iphi39[ieta_bin][1],"iphi=39: Q_{A}+Q_{B} #times gain","l");
+      catLeg2->AddEntry(energy_iphi43[ieta_bin][1],"iphi=43: Q #times gain","l");
+    }
+    catLeg2->Draw();
+   
+  }
+  c2->SaveAs("c_HFP_depth2.gif");
+  c2->SaveAs("c_HFP_depth2.pdf");
+
+  //
+  // Plotting
+  //
+  TCanvas *c3 = new TCanvas("c_HFP_iphi39_depth1_anodeAB","c3_HFP_iphi39_depth1_anodeAB",1600,1200);
+  TLegend* catLeg3 = new TLegend(0.55,0.5,0.9,0.85);
+  catLeg3->SetTextSize(0.064);
+  catLeg3->SetTextFont(42);
+  catLeg3->SetLineColor(0);
+
+  c3->Divide(3,4);
+  for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
+    int ieta=ieta_bin+29;
+    if (ieta==40) continue;
+    if (ieta>40) c3->cd(ieta_bin); // skip ieta=40
+    else         c3->cd(ieta_bin+1);
+    gPad->SetLogy();
+    gPad->SetTopMargin(0.02);
+    gPad->SetBottomMargin(0.16);
+    gPad->SetRightMargin(0.04);
+    gPad->SetLeftMargin(0.16);
+
+    energy_anode_iphi39[ieta_bin][0][0]->SetMinimum(0.8);
+    energy_anode_iphi39[ieta_bin][0][0]->GetXaxis()->SetTitle("Energy (GeV)");
+    energy_anode_iphi39[ieta_bin][0][0]->GetYaxis()->SetTitle("Number of entries");
+    energy_anode_iphi39[ieta_bin][0][0]->SetTitleSize(0.08);
+    energy_anode_iphi39[ieta_bin][0][0]->SetTitleSize(0.08,"X");
+    energy_anode_iphi39[ieta_bin][0][0]->SetTitleSize(0.08,"Y");
+    energy_anode_iphi39[ieta_bin][0][0]->SetTitleOffset(1.0,"X");
+    energy_anode_iphi39[ieta_bin][0][0]->SetTitleOffset(1.0,"Y");
+    energy_anode_iphi39[ieta_bin][0][0]->SetLabelSize(0.06,"X");
+    energy_anode_iphi39[ieta_bin][0][0]->SetLabelSize(0.06,"Y");
+    energy_anode_iphi39[ieta_bin][0][0]->SetStats(false);
+    energy_anode_iphi39[ieta_bin][0][0]->SetLineColor(1);
+    energy_anode_iphi39[ieta_bin][0][1]->SetLineColor(2);
+
+    sprintf(tmp,"ieta = %d, depth=1",ieta);
+    energy_anode_iphi39[ieta_bin][0][0]->SetTitle(tmp);
+    energy_anode_iphi39[ieta_bin][0][0]->Draw();
+    energy_anode_iphi39[ieta_bin][0][1]->Draw("same");
+
+    if (ieta_bin==0){
+      catLeg3->AddEntry(energy_anode_iphi39[ieta_bin][0][0],"iphi=39: Q_{A} #times gain","l");
+      catLeg3->AddEntry(energy_anode_iphi39[ieta_bin][0][1],"iphi=39: Q_{B} #times gain","l");
+    }
+    catLeg3->Draw();
+   
+  }
+  c3->Update();
+  c3->Print("c_HFP_iphi39_depth1_anodeAB.gif");
+  c3->SaveAs("c_HFP_iphi39_depth1_anodeAB.pdf");
+
+  //
+  // Plotting
+  //
+  TCanvas *c4 = new TCanvas("c_HFP_iphi39_depth2_anodeAB","c4_HFP_iphi39_depth2_anodeAB",1600,1200);
+  TLegend* catLeg4 = new TLegend(0.55,0.5,0.9,0.85);
+  catLeg4->SetTextSize(0.064);
+  catLeg4->SetTextFont(42);
+  catLeg4->SetLineColor(0);
+
+  c4->Divide(3,4);
+  for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
+    int ieta=ieta_bin+29;
+    if (ieta==40) continue;
+    if (ieta>40) c4->cd(ieta_bin); // skip ieta=40
+    else         c4->cd(ieta_bin+1);
+    gPad->SetLogy();
+    gPad->SetTopMargin(0.02);
+    gPad->SetBottomMargin(0.16);
+    gPad->SetRightMargin(0.04);
+    gPad->SetLeftMargin(0.16);
+
+    energy_anode_iphi39[ieta_bin][1][0]->SetMinimum(0.8);
+    energy_anode_iphi39[ieta_bin][1][0]->GetXaxis()->SetTitle("Energy (GeV)");
+    energy_anode_iphi39[ieta_bin][1][0]->GetYaxis()->SetTitle("Number of entries");
+    energy_anode_iphi39[ieta_bin][1][0]->SetTitleSize(0.08);
+    energy_anode_iphi39[ieta_bin][1][0]->SetTitleSize(0.08,"X");
+    energy_anode_iphi39[ieta_bin][1][0]->SetTitleSize(0.08,"Y");
+    energy_anode_iphi39[ieta_bin][1][0]->SetTitleOffset(1.0,"X");
+    energy_anode_iphi39[ieta_bin][1][0]->SetTitleOffset(1.0,"Y");
+    energy_anode_iphi39[ieta_bin][1][0]->SetLabelSize(0.06,"X");
+    energy_anode_iphi39[ieta_bin][1][0]->SetLabelSize(0.06,"Y");
+    energy_anode_iphi39[ieta_bin][1][0]->SetStats(false);
+    energy_anode_iphi39[ieta_bin][1][0]->SetLineColor(1);
+    energy_anode_iphi39[ieta_bin][1][1]->SetLineColor(2);
+
+    sprintf(tmp,"ieta = %d, depth=2",ieta);
+    energy_anode_iphi39[ieta_bin][1][0]->SetTitle(tmp);
+    energy_anode_iphi39[ieta_bin][1][0]->Draw();
+    energy_anode_iphi39[ieta_bin][1][1]->Draw("same");
+
+    if (ieta_bin==0){
+      catLeg4->AddEntry(energy_anode_iphi39[ieta_bin][1][0],"iphi=39: Q_{A} #times gain","l");
+      catLeg4->AddEntry(energy_anode_iphi39[ieta_bin][1][1],"iphi=39: Q_{B} #times gain","l");
+    }
+    catLeg4->Draw();
+   
+  }
+  c4->Update();
+  c4->SaveAs("c_HFP_iphi39_depth2_anodeAB.gif");
+  c4->SaveAs("c_HFP_iphi39_depth2_anodeAB.pdf");
+
+}
+
