@@ -217,7 +217,7 @@ int main(int argc, char *argv[]){
 			<< pedestal_QIE10_depth2_anodeB[ieta_bin] << std::endl;
 	      */
 
-	      if (its>=1){ // TS1+2+3
+	      if (its_>=1){ // TS1+2+3
               qie1010ab += evt->QIE10DigiFC_()->at(qie10chA)[its_]-qie10a_ped 
 		          +evt->QIE10DigiFC_()->at(qie10chB)[its_]-qie10b_ped; // pedestal subtracted
               qie10a += evt->QIE10DigiFC_()->at(qie10chA)[its_]-qie10a_ped;    // pedestal subtracted
