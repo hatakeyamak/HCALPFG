@@ -172,6 +172,10 @@ void plot_spectra(){
   catLeg1b->SetTextSize(0.064);
   catLeg1b->SetTextFont(42);
   catLeg1b->SetLineColor(0);
+  TLegend* catLeg1b2 = new TLegend(0.55,0.5,0.9,0.85);
+  catLeg1b2->SetTextSize(0.064);
+  catLeg1b2->SetTextFont(42);
+  catLeg1b2->SetLineColor(0);
 
   c1b->Divide(3,4);
   for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
@@ -194,9 +198,14 @@ void plot_spectra(){
 
     if (ieta_bin==0){
       catLeg1b->AddEntry(energy_iphi39[ieta_bin][0],"iphi=39: Q_{A}+Q_{B} #times gain","l");
-      catLeg1b->AddEntry(energy_iphinot39[ieta_bin][0],"iphi#neq39: Q #times gain","l");
+      catLeg1b->AddEntry(energy_iphinot39[ieta_bin][0],"iphi#neq39: Q #times gain (/35)","l");
     }
-    catLeg1b->Draw();
+    if (ieta==41){
+      catLeg1b2->AddEntry(energy_iphi39[ieta_bin][0],"iphi=39: Q_{A}+Q_{B} #times gain","l");
+      catLeg1b2->AddEntry(energy_iphinot39[ieta_bin][0],"iphi#neq39: Q #times gain (/17)","l");
+    }
+    if (ieta==41) catLeg1b2->Draw();
+    else          catLeg1b->Draw();
    
   }
   c1b->SaveAs("c_HFP_depth1_b.gif");
@@ -258,7 +267,7 @@ void plot_spectra(){
     if (ieta_bin==1){
       catLeg1c2->AddEntry(energy_iphinot39[ieta_bin][0],"iphi#neq39: Q #times gain","l");
       catLeg1c2->AddEntry(energy_QIE8x2_iphi39[ieta_bin][0],"iphi=39: Q_{B} #times gain #times 2");
-      catLeg1c2->AddEntry(energy_QIE8calib_iphi39[ieta_bin][0],"iphi=39: Q_{B} #times gain (calibrated)");
+      catLeg1c2->AddEntry(energy_QIE8calib_iphi39[ieta_bin][0],"iphi=39: Q_{B} #times gain (calib)");
     }
     if (ieta!=29 && ieta!=41) catLeg1c2->Draw();
     else                      catLeg1c->Draw();
@@ -343,6 +352,10 @@ void plot_spectra(){
   catLeg2b->SetTextSize(0.064);
   catLeg2b->SetTextFont(42);
   catLeg2b->SetLineColor(0);
+  TLegend* catLeg2b2 = new TLegend(0.55,0.5,0.9,0.85);
+  catLeg2b2->SetTextSize(0.064);
+  catLeg2b2->SetTextFont(42);
+  catLeg2b2->SetLineColor(0);
 
   c2b->Divide(3,4);
   for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
@@ -363,13 +376,93 @@ void plot_spectra(){
 
     if (ieta_bin==0){
       catLeg2b->AddEntry(energy_iphi39[ieta_bin][1],"iphi=39: Q_{A}+Q_{B} #times gain","l");
-      catLeg2b->AddEntry(energy_iphinot39[ieta_bin][1],"iphi#neq39: Q #times gain","l");
+      catLeg2b->AddEntry(energy_iphinot39[ieta_bin][1],"iphi#neq39: Q #times gain (/35)","l");
     }
-    catLeg2b->Draw();
+    if (ieta==41){
+      catLeg2b2->AddEntry(energy_iphi39[ieta_bin][1],"iphi=39: Q_{A}+Q_{B} #times gain","l");
+      catLeg2b2->AddEntry(energy_iphinot39[ieta_bin][1],"iphi#neq39: Q #times gain (/17)","l");
+    }
+    if (ieta==41) catLeg2b2->Draw();
+    else          catLeg2b->Draw();
    
   }
   c2b->SaveAs("c_HFP_depth2_b.gif");
   c2b->SaveAs("c_HFP_depth2_b.pdf");
+
+  //
+  // Plotting
+  //
+  TCanvas *c2c = new TCanvas("c_HFP_depth2_c","c2c_HFP_depth2",1600,1200);
+  TLegend* catLeg2c = new TLegend(0.55,0.5,0.9,0.85);
+  catLeg2c->SetTextSize(0.064);
+  catLeg2c->SetTextFont(42);
+  catLeg2c->SetLineColor(0);
+  TLegend* catLeg2c2 = new TLegend(0.55,0.5,0.9,0.85);
+  catLeg2c2->SetTextSize(0.064);
+  catLeg2c2->SetTextFont(42);
+  catLeg2c2->SetLineColor(0);
+  TLegend* catLeg2c3 = new TLegend(0.55,0.5,0.9,0.85);
+  catLeg2c3->SetTextSize(0.064);
+  catLeg2c3->SetTextFont(42);
+  catLeg2c3->SetLineColor(0);
+
+  c2c->Divide(3,4);
+  for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
+    int ieta=ieta_bin+29;
+    if (ieta==40) continue;
+    if (ieta>40) c2c->cd(ieta_bin); // skip ieta=40
+    else         c2c->cd(ieta_bin+1);
+    gPad->SetLogy();
+    gPad->SetTopMargin(0.02);
+    gPad->SetBottomMargin(0.16);
+    gPad->SetRightMargin(0.04);
+    gPad->SetLeftMargin(0.16);
+    
+    energy_iphinot39[ieta_bin][1]->SetMinimum(0.8);
+    energy_iphinot39[ieta_bin][1]->GetXaxis()->SetTitle("Energy (GeV)");
+    energy_iphinot39[ieta_bin][1]->GetYaxis()->SetTitle("Number of entries");
+    energy_iphinot39[ieta_bin][1]->SetTitleSize(0.08);
+    energy_iphinot39[ieta_bin][1]->SetTitleSize(0.08,"X");
+    energy_iphinot39[ieta_bin][1]->SetTitleSize(0.08,"Y");
+    energy_iphinot39[ieta_bin][1]->SetTitleOffset(1.0,"X");
+    energy_iphinot39[ieta_bin][1]->SetTitleOffset(1.0,"Y");
+    energy_iphinot39[ieta_bin][1]->SetLabelSize(0.06,"X");
+    energy_iphinot39[ieta_bin][1]->SetLabelSize(0.06,"Y");
+    energy_iphinot39[ieta_bin][1]->SetStats(false);
+    energy_iphinot39[ieta_bin][1]->SetLineColor(1);
+    
+    energy_iphinot39[ieta_bin][1]->SetLineColor(6);
+    energy_QIE8x2_iphi39[ieta_bin][1]->SetLineColor(2);
+    energy_QIE8calib_iphi39[ieta_bin][1]->SetLineColor(4);
+
+    sprintf(tmp,"ieta = %d, depth=1",ieta);
+    energy_iphinot39[ieta_bin][1]->SetTitle(tmp);
+    energy_iphinot39[ieta_bin][1]->Draw();
+    energy_QIE8x2_iphi39[ieta_bin][1]->Draw("same");
+    if (ieta!=29 && ieta!=41) energy_QIE8calib_iphi39[ieta_bin][1]->Draw("same");
+
+    if (ieta_bin==0){
+      catLeg2c->AddEntry(energy_iphinot39[ieta_bin][1],"iphi#neq39: Q #times gain","l");
+      catLeg2c->AddEntry(energy_QIE8x2_iphi39[ieta_bin][1],"iphi=39: Q_{B} #times gain #times 2");
+      //catLeg2c->AddEntry(energy_QIE8calib_iphi39[ieta_bin][1],"iphi=39: Q_{B} #times gain (calibrated)");
+    }
+    if (ieta_bin==1){
+      catLeg2c3->AddEntry(energy_iphinot39[ieta_bin][1],"iphi#neq39: Q #times gain","l");
+      //catLeg2c3->AddEntry(energy_QIE8x2_iphi39[ieta_bin][1],"iphi=39: Q_{B} #times gain #times 2");
+      //catLeg2c3->AddEntry(energy_QIE8calib_iphi39[ieta_bin][1],"iphi=39: Q_{B} #times gain (calib)");
+    }
+    if (ieta_bin==2){
+      catLeg2c2->AddEntry(energy_iphinot39[ieta_bin][1],"iphi#neq39: Q #times gain","l");
+      catLeg2c2->AddEntry(energy_QIE8x2_iphi39[ieta_bin][1],"iphi=39: Q_{B} #times gain #times 2");
+      catLeg2c2->AddEntry(energy_QIE8calib_iphi39[ieta_bin][1],"iphi=39: Q_{B} #times gain (calib)");
+    }
+    if      (ieta==29 || ieta==41) catLeg2c->Draw();
+    else if (ieta==30 || ieta==34) catLeg2c3->Draw();
+    else                           catLeg2c2->Draw();
+
+  }
+  c2c->SaveAs("c_HFP_depth2_c.gif");
+  c2c->SaveAs("c_HFP_depth2_c.pdf");
 
   //
   // Plotting
