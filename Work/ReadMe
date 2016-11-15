@@ -1,0 +1,20 @@
+
+compile the code by
+
+  $make all
+
+run the code with
+
+  $./run "InputFile/run278240.txt" "run278240" "." "" "0"
+
+The first argument is the input file that contains the address to the ntuples to be analyzed
+
+the second argument is a text that will be used in naming the out put
+
+the third argument is the output directory
+
+the fourth argument is just an extra string that will be used in naming the output file
+
+the last argument is verbosity
+
+
