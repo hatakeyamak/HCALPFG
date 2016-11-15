@@ -260,7 +260,7 @@ int main(int argc, char *argv[]){
 	      sprintf(tempname,"eta%d_phi%d_dep%d_capid%d",ieta,iphi,depth+2,its_); 
 	      double qie10a_ped=QIE10PedMap[tempname];
 	      
-	      if (its>=1){ // TS1+2+3
+	      if (its_>=1){ // TS1+2+3
               qie10a+=evt->QIE10DigiFC_()->at(qie10ch)[its_]-qie10a_ped;
               qie8b +=evt->HFDigiFC_()->at(ich)[its_];
 	      }
