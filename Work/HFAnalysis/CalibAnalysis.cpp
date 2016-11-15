@@ -34,7 +34,6 @@ double ADCtofC(double ADC);
 
 int main(int argc, char *argv[]){
 
-
   /////////////////////////////////////
   if (argc != 6)
   {
@@ -218,10 +217,12 @@ int main(int argc, char *argv[]){
 			<< pedestal_QIE10_depth2_anodeB[ieta_bin] << std::endl;
 	      */
 
+	      if (its>=1){ // TS1+2+3
               qie1010ab += evt->QIE10DigiFC_()->at(qie10chA)[its_]-qie10a_ped 
 		          +evt->QIE10DigiFC_()->at(qie10chB)[its_]-qie10b_ped; // pedestal subtracted
               qie10a += evt->QIE10DigiFC_()->at(qie10chA)[its_]-qie10a_ped;    // pedestal subtracted
               qie10b += evt->QIE10DigiFC_()->at(qie10chB)[its_]-qie10b_ped;    // pedestal subtracted
+	      }
             }
             //printf("1010:\nFCa: %g FCb: %g \n",evt->QIE10DigiFC_()->at(qie10chA)[its],evt->QIE10DigiFC_()->at(qie10chB)[its]);
             sprintf(tempname,"ieta%d_iphi%d_depth%d",ieta,iphi,depth);
@@ -258,9 +259,11 @@ int main(int argc, char *argv[]){
 
 	      sprintf(tempname,"eta%d_phi%d_dep%d_capid%d",ieta,iphi,depth+2,its_); 
 	      double qie10a_ped=QIE10PedMap[tempname];
-
+	      
+	      if (its>=1){ // TS1+2+3
               qie10a+=evt->QIE10DigiFC_()->at(qie10ch)[its_]-qie10a_ped;
               qie8b +=evt->HFDigiFC_()->at(ich)[its_];
+	      }
             }
             //printf("108:\nFCa: %g FCb: %g \n",evt->QIE10DigiFC_()->at(qie10ch)[its],evt->HFDigiFC_()->at(ich)[2]);
             sprintf(tempname,"ieta%d_iphi%d_depth%d",ieta,iphi,depth);
@@ -302,7 +305,7 @@ int main(int argc, char *argv[]){
       else if(iphi!=39){
         sprintf(tempname,"ieta%d_iphi%d_depth%d",ieta,iphi,depth);
         //printf("8:\nFC: %g \n",evt->HFDigiFC_()->at(ich)[2]);
-        double qie8b=evt->HFDigiFC_()->at(ich)[0]+
+        double qie8b=  //evt->HFDigiFC_()->at(ich)[0]+
                      evt->HFDigiFC_()->at(ich)[1]+
                      evt->HFDigiFC_()->at(ich)[2]+
                      evt->HFDigiFC_()->at(ich)[3];

@@ -39,7 +39,7 @@ void plot_spectra(){
   // Open input root files, read in necessary histograms
   //
 
-  TFile *_file0 = TFile::Open("OutPut/results_KH3.root");
+  TFile *_file0 = TFile::Open("OutPut/results_KH4.root");
   TH1F *energy_anode_iphi39[13][2][2]; // ieta=29-41:13, depth:2, anode A&B:2
   TH1F *energy_QIE8x2_iphi39[13][2];     // ieta=29-41:13, depth:2, QIE8 x2 (as done for default reco)
   TH1F *energy_QIE8calib_iphi39[13][2];  // ieta=29-41:13, depth:2, QIE8 phi symmetry corrections
