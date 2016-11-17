@@ -22,6 +22,28 @@ double emean(TH1F* htmp, double high, double low){
 }
 
 //
+// --- integral  ---
+//
+double integral(TH1F* htmp, double high, double low){
+
+  //htmp->Print();
+  double tot_val=0.;
+  double tot_ent=0.;
+  for (int ibin=0;ibin<htmp->GetNbinsX();ibin++){
+    double bin_value = htmp->GetBinCenter(ibin+1);
+    double bin_ent   = htmp->GetBinContent(ibin+1);
+    if (bin_value>low && bin_value<high){
+      tot_ent += bin_ent;
+      tot_val += bin_ent*bin_value;
+    }
+  }
+  double emean = 0.;
+  if (tot_ent>0.) emean = tot_val/tot_ent;
+  return tot_ent;
+
+}
+
+//
 // plot spectra
 //
 void plot_spectra(){
@@ -39,7 +61,7 @@ void plot_spectra(){
   // Open input root files, read in necessary histograms
   //
 
-  TFile *_file0 = TFile::Open("OutPut/results_KH5.root");
+  TFile *_file0 = TFile::Open("OutPut/results_KH6.root");
   TH1F *energy_anode_iphi39[13][2][2]; // ieta=29-41:13, depth:2, anode A&B:2
   TH1F *energy_QIE8x2_iphi39[13][2];     // ieta=29-41:13, depth:2, QIE8 x2 (as done for default reco)
   TH1F *energy_QIE8calib_iphi39[13][2];  // ieta=29-41:13, depth:2, QIE8 phi symmetry corrections
@@ -48,15 +70,24 @@ void plot_spectra(){
   TH1F *energy_iphi43[13][2];          // ieta=29-41:13, depth:2
   TH1F *energy_iphinot39[13][2];       // ieta=29-41:13, depth:2
 
-  double emean_hi=400.;
-  double emean_lo=40.;
+  TH1F *energy_iphi39_fine[13][2];          // ieta=29-41:13, depth:2
+  TH1F *energy_iphinot39_fine[13][2];       // ieta=29-41:13, depth:2
+  
+  double energy_hi=500.;
+  double energy_lo=50.;
   TH1F *relative_response_vsieta_iphi39_depth1 = new TH1F("relative_response_vsieta_iphi39_depth1","relative_response_vsieta_iphi39_depth1",13,28.5,41.5);
   TH1F *relative_response_vsieta_iphi39_depth2 = new TH1F("relative_response_vsieta_iphi39_depth2","relative_response_vsieta_iphi39_depth2",13,28.5,41.5);
-  TH1F *relative_response_iphi39_depth1 = new TH1F("relative_response_iphi39_depth1","relative_response_iphi39_depth1",100,0.5,1.5);
-  TH1F *relative_response_iphi39_depth2 = new TH1F("relative_response_iphi39_depth2","relative_response_iphi39_depth2",100,0.5,1.5);
+  TH1F *relative_response_iphi39 = new TH1F("relative_response_iphi39","relative_response_iphi39",100,0.5,1.5);
 
   char tmp[40];
 
+  int NRebin=20;
+
+  int nIterN = 10;
+  int nIter;
+  TSpline5 *tt;
+  double x;
+  
   for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
     int ieta=ieta_bin+29;
     if (ieta==40) continue;
@@ -65,7 +96,6 @@ void plot_spectra(){
       int idepth=idepth_bin+1;
 
       sprintf(tmp,"ieta%d_iphi39_depth%d",ieta,idepth);
-      //std::cout << tmp << std::endl;
       energy_iphi39[ieta_bin][idepth_bin] = (TH1F*)_file0->Get(tmp);       // iphi=39 
 
       sprintf(tmp,"ieta%d_iphinot39_depth%d",ieta,idepth);
@@ -88,13 +118,126 @@ void plot_spectra(){
       for (int ianode_bin=0; ianode_bin<=1; ianode_bin++){
 	if      (ianode_bin==0) sprintf(tmp,"AnodeA_ieta%d_iphi39_depth%d",ieta,idepth);
 	else if (ianode_bin==1) sprintf(tmp,"AnodeB_ieta%d_iphi39_depth%d",ieta,idepth);
-	std::cout << tmp << std::endl;
 	energy_anode_iphi39[ieta_bin][idepth_bin][ianode_bin] = (TH1F*)_file0->Get(tmp);
       } // ianode_bin
 
     }   // idepth_bin
   }     // ieta_bin
 
+
+  //
+  // Iterative method
+  //
+  std::cout << "iterative method" << std::endl;
+  for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
+    int ieta=ieta_bin+29;
+    if (ieta==40) continue;
+
+    for (int idepth_bin=0; idepth_bin<=1; idepth_bin++){
+      int idepth=idepth_bin+1;
+
+      int nbin_org = energy_iphi39[ieta_bin][idepth_bin]->GetNbinsX();
+      double limit_hi = energy_iphi39[ieta_bin][idepth_bin]->GetBinLowEdge(nbin_org) + energy_iphi39[ieta_bin][idepth_bin]->GetBinWidth(nbin_org);
+      double limit_lo = energy_iphi39[ieta_bin][idepth_bin]->GetBinLowEdge(1);
+      
+      sprintf(tmp,"ieta%d_iphi39_depth%d_fine",ieta,idepth);
+      energy_iphi39_fine[ieta_bin][idepth_bin] = new TH1F(tmp,tmp,nbin_org*8,limit_lo,limit_hi);          // ieta=29-41:13, depth:2
+      
+      sprintf(tmp,"ieta%d_iphinot39_depth%d_fine",ieta,idepth);
+      energy_iphinot39_fine[ieta_bin][idepth_bin] = new TH1F(tmp,tmp,nbin_org*8,limit_lo,limit_hi);       // ieta=29-41:13, depth:2
+
+      double Eref  = integral(energy_iphinot39[ieta_bin][idepth_bin],energy_hi,energy_lo)*emean(energy_iphinot39[ieta_bin][idepth_bin],energy_hi,energy_lo);
+      double Etest = integral(energy_iphi39[ieta_bin][idepth_bin],energy_hi,energy_lo)*emean(energy_iphi39[ieta_bin][idepth_bin],energy_hi,energy_lo); 
+      double corr = Eref / Etest;
+
+      double xx[2100];
+      double yy[2100];
+      
+      for (nIter=1;nIter<nIterN;nIter++) { //cout<<nIter<<" |  ";
+        energy_iphi39_fine[ieta_bin][idepth_bin]->Reset();
+	
+        for (int kk=1;kk<=energy_iphi39[ieta_bin][idepth_bin]->GetNbinsX();kk++) {
+          xx[kk-1]=energy_iphi39[ieta_bin][idepth_bin]->GetBinCenter(kk);
+          yy[kk-1]=energy_iphi39[ieta_bin][idepth_bin]->GetBinContent(kk);
+        }
+        tt = new TSpline5("tt",xx,yy,2100,"",10,20);
+
+	for (int kk=1;kk<=energy_iphi39_fine[ieta_bin][idepth_bin]->GetNbinsX();kk++) {
+          x=energy_iphi39_fine[ieta_bin][idepth_bin]->GetBinCenter(kk);
+          energy_iphi39_fine[ieta_bin][idepth_bin]->Fill(x*corr,tt->Eval(x)/8.0);
+        }
+        tt->Delete();
+
+        energy_iphi39_fine[ieta_bin][idepth_bin]->SetAxisRange(energy_lo,energy_hi);
+        Etest = energy_iphi39_fine[ieta_bin][idepth_bin]->Integral()*energy_iphi39_fine[ieta_bin][idepth_bin]->GetMean();
+        double dcorr=(Etest-Eref)/Eref;
+	/*
+        if (rLP>0) drLP=
+              sqrt(pow(hLdatP[ii][jj/2]->GetMeanError()/hLdatP[ii][jj/2]->GetMean(),2)+
+                   1.f/hLdatP[ii][jj/2]->Integral()+
+                   pow(dcorrL/(1.0+sqrt((float) nIter)),2));
+        else drLP=1.e-6;
+	*/
+        if (fabs(dcorr)>0.001) { 
+          corr*=1-dcorr/(1.0+sqrt((float) nIter));
+          //printf("%2d : %2d / %2d / 1 %7.3f %7.3f\n",nIter,ieta,iphi,dcorrL,corrL);
+        }
+        else {
+          //  printf("%2d : %2d / %2d / 1 %7.3f %8.4f %8.4f\n",nIter,ieta,iphi,dcorrL,corrL,corrL*drLP);
+          break;
+        }
+        if (nIter==nIterN-1) {
+          //printf("%2d : %2d / %2d / 1 %7.3f %8.4f %8.4f\n",nIter,ieta,iphi,dcorrL,corrL,corrL*drLP);
+        }
+	
+	//std::cout << nIter << std::endl;
+	//std::cout << corr << std::endl;
+      }
+      //energy_iphi39[ieta_bin][idepth_bin]->Draw();
+      //energy_iphi39_fine[ieta_bin][idepth_bin]->Draw("sames");      
+      //energy_iphi39[ieta_bin][idepth_bin]->Print();
+      //energy_iphi39_fine[ieta_bin][idepth_bin]->Print();      
+      //energy_iphi39_fine[ieta_bin][idepth_bin]->Rebin(20*8);      
+
+      if (idepth_bin==0){
+	relative_response_vsieta_iphi39_depth1->SetBinContent(ieta_bin+1,1./corr);    
+	relative_response_vsieta_iphi39_depth1->SetBinError(ieta_bin+1,0.);
+      } else {
+	relative_response_vsieta_iphi39_depth2->SetBinContent(ieta_bin+1,1./corr);    
+	relative_response_vsieta_iphi39_depth2->SetBinError(ieta_bin+1,0.);
+      }
+      relative_response_iphi39->Fill(1./corr);
+            
+    }    
+  }
+
+  //
+  // Rebin
+  //
+  for (int ieta_bin=0; ieta_bin<=12; ieta_bin++){
+    int ieta=ieta_bin+29;
+    if (ieta==40) continue;
+
+    for (int idepth_bin=0; idepth_bin<=1; idepth_bin++){
+      int idepth=idepth_bin+1;
+
+      energy_iphi39[ieta_bin][idepth_bin]->Rebin(NRebin);       // iphi=39 
+      energy_iphinot39[ieta_bin][idepth_bin]->Rebin(NRebin);    // iphi!=39
+
+      energy_iphi35[ieta_bin][idepth_bin]->Rebin(NRebin);       // iphi=35
+      energy_iphi43[ieta_bin][idepth_bin]->Rebin(NRebin);       // iphi=43
+
+      energy_QIE8x2_iphi39[ieta_bin][idepth_bin]->Rebin(NRebin);    // iphi=39 
+      energy_QIE8calib_iphi39[ieta_bin][idepth_bin]->Rebin(NRebin); // iphi=39 
+
+      for (int ianode_bin=0; ianode_bin<=1; ianode_bin++){
+
+	energy_anode_iphi39[ieta_bin][idepth_bin][ianode_bin]->Rebin(NRebin);
+
+      } // ianode_bin
+
+    }   // idepth_bin
+  }     // ieta_bin
 
   //
   // Plotting - Depth1
@@ -148,17 +291,19 @@ void plot_spectra(){
     }
     catLeg1->Draw();
 
+    /*
     std::cout << ieta << " "
-              << emean(energy_iphi35[ieta_bin][0],emean_hi,emean_lo) << " "
-              << emean(energy_iphi39[ieta_bin][0],emean_hi,emean_lo) << " "
-              << emean(energy_iphi43[ieta_bin][0],emean_hi,emean_lo) << std::endl;
+              << emean(energy_iphi35[ieta_bin][0],energy_hi,energy_lo) << " "
+              << emean(energy_iphi39[ieta_bin][0],energy_hi,energy_lo) << " "
+              << emean(energy_iphi43[ieta_bin][0],energy_hi,energy_lo) << std::endl;
     relative_response_vsieta_iphi39_depth1->SetBinContent(ieta_bin+1,
-                                                   2.*emean(energy_iphi39[ieta_bin][0],emean_hi,emean_lo)
-                                                   /(emean(energy_iphi35[ieta_bin][0],emean_hi,emean_lo)+emean(energy_iphi43[ieta_bin][0],emean_hi,emean_lo)));    
+                                                   2.*emean(energy_iphi39[ieta_bin][0],energy_hi,energy_lo)
+                                                   /(emean(energy_iphi35[ieta_bin][0],energy_hi,energy_lo)+emean(energy_iphi43[ieta_bin][0],energy_hi,energy_lo)));    
     relative_response_vsieta_iphi39_depth1->SetBinError(ieta_bin+1,0.);
     relative_response_iphi39_depth1->Fill(
-                                                   2.*emean(energy_iphi39[ieta_bin][0],emean_hi,emean_lo)
-                                                   /(emean(energy_iphi35[ieta_bin][0],emean_hi,emean_lo)+emean(energy_iphi43[ieta_bin][0],emean_hi,emean_lo)));
+                                                   2.*emean(energy_iphi39[ieta_bin][0],energy_hi,energy_lo)
+                                                   /(emean(energy_iphi35[ieta_bin][0],energy_hi,energy_lo)+emean(energy_iphi43[ieta_bin][0],energy_hi,energy_lo)));
+    */
    
   }
   c1->SaveAs("c_HFP_depth1.gif");
@@ -328,18 +473,20 @@ void plot_spectra(){
     }
     catLeg2->Draw();
 
+    /*
     std::cout << ieta << " "
               << emean(energy_iphi35[ieta_bin][1],500.,50.) << " "
               << emean(energy_iphi39[ieta_bin][1],500.,50.) << " "
               << emean(energy_iphi43[ieta_bin][1],500.,50.) << std::endl;
     relative_response_vsieta_iphi39_depth2->SetBinContent(ieta_bin+1,
-                                                   2.*emean(energy_iphi39[ieta_bin][1],emean_hi,emean_lo)
-                                                   /(emean(energy_iphi35[ieta_bin][1],emean_hi,emean_lo)+emean(energy_iphi43[ieta_bin][1],emean_hi,emean_lo)));
+                                                   2.*emean(energy_iphi39[ieta_bin][1],energy_hi,energy_lo)
+                                                   /(emean(energy_iphi35[ieta_bin][1],energy_hi,energy_lo)+emean(energy_iphi43[ieta_bin][1],energy_hi,energy_lo)));
     relative_response_vsieta_iphi39_depth2->SetBinError(ieta_bin+1,0.);
     relative_response_iphi39_depth2->Fill(
-                                                   2.*emean(energy_iphi39[ieta_bin][1],emean_hi,emean_lo)
-                                                   /(emean(energy_iphi35[ieta_bin][1],emean_hi,emean_lo)+emean(energy_iphi43[ieta_bin][1],emean_hi,emean_lo)));
-   
+                                                   2.*emean(energy_iphi39[ieta_bin][1],energy_hi,energy_lo)
+                                                   /(emean(energy_iphi35[ieta_bin][1],energy_hi,energy_lo)+emean(energy_iphi43[ieta_bin][1],energy_hi,energy_lo)));
+    */
+
   }
   c2->SaveAs("c_HFP_depth2.gif");
   c2->SaveAs("c_HFP_depth2.pdf");
@@ -373,6 +520,7 @@ void plot_spectra(){
     energy_iphi39[ieta_bin][1]->SetTitle(tmp);
     energy_iphi39[ieta_bin][1]->Draw();
     energy_iphinot39[ieta_bin][1]->Draw("same");
+    //energy_iphi39_fine[ieta_bin][1]->Draw("same");      
 
     if (ieta_bin==0){
       catLeg2b->AddEntry(energy_iphi39[ieta_bin][1],"iphi=39: Q_{A}+Q_{B} #times gain","l");
@@ -587,7 +735,7 @@ void plot_spectra(){
   relative_response_vsieta_iphi39_depth1->SetMaximum(1.5);
 
   relative_response_vsieta_iphi39_depth1->GetXaxis()->SetTitle("ieta");
-  relative_response_vsieta_iphi39_depth1->GetYaxis()->SetTitle("<E>(iphi=39,Q_{A}+Q_{B}) / <E>(iphi=35,43)");
+  relative_response_vsieta_iphi39_depth1->GetYaxis()->SetTitle("Relative energy response (iphi=39,Q_{A}+Q_{B})");
   relative_response_vsieta_iphi39_depth1->SetTitle("");
   relative_response_vsieta_iphi39_depth1->SetName("");
   relative_response_vsieta_iphi39_depth1->SetTitleSize(0.001);
@@ -610,8 +758,23 @@ void plot_spectra(){
   catLeg5->AddEntry(relative_response_vsieta_iphi39_depth2,"HF+ short fiber (depth 2)","l");
   catLeg5->Draw();
 
-  relative_response_iphi39_depth1->Print();
-  relative_response_iphi39_depth2->Print();
+  printf("phicorr_iterative_iphi39_depth1[%d]={\n",relative_response_vsieta_iphi39_depth1->GetNbinsX());
+  for (int kk=1;kk<relative_response_vsieta_iphi39_depth1->GetNbinsX();kk++) {    
+    if (kk!=12) printf("%8.4f,",1./relative_response_vsieta_iphi39_depth1->GetBinContent(kk));    
+    else        printf("%8.4f,",1.0);
+    if (kk%5==0) printf("\n");
+  }
+  printf("%8.4f};\n",1./relative_response_vsieta_iphi39_depth1->GetBinContent(relative_response_vsieta_iphi39_depth1->GetNbinsX()));    
+  
+  printf("phicorr_iterative_iphi39_depth2[%d]={\n",relative_response_vsieta_iphi39_depth2->GetNbinsX());
+  for (int kk=1;kk<relative_response_vsieta_iphi39_depth2->GetNbinsX();kk++) {    
+    if (kk!=12) printf("%8.4f,",1./relative_response_vsieta_iphi39_depth2->GetBinContent(kk));    
+    else        printf("%8.4f,",1.0);
+    if (kk%5==0) printf("\n");
+  }
+  printf("%8.4f};\n",1./relative_response_vsieta_iphi39_depth2->GetBinContent(relative_response_vsieta_iphi39_depth2->GetNbinsX()));    
+  
+  relative_response_iphi39->Print();
   
   c5->SaveAs("c_relative_response_vsieta_iphi39.gif");
   c5->SaveAs("c_relative_response_vsieta_iphi39.pdf");
