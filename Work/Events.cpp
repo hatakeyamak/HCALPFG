@@ -126,7 +126,7 @@
     } else {
 
       if( currentEntry_ > 0 && currentEntry_%10000 == 0 ) {
-        std::cout << " Processed " << currentEntry_ << " events" << std::endl;
+        std::cout << " Processed " << currentEntry_ << " events / " << template_Entries << std::endl;
       }
 
       fChain->GetEntry(currentEntry_);

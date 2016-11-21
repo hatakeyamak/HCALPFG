@@ -19,8 +19,8 @@ mkdir -p qsub
         export runnum=$runnum
         echo $filenum
         echo $runnum
-        #qsub -l walltime=12:00:00 -N $i_$outStr -o qsub/ -e qsub/ -V $submitscript  -q moonshot
-        qsub -l walltime=12:00:00 -N $i_$outStr -o qsub/ -e qsub/ -V $submitscript
+        qsub -l walltime=12:00:00 -N $i_$outStr -o qsub/ -e qsub/ -V $submitscript  -q anderson
+        #qsub -l walltime=12:00:00 -N $i_$outStr -o qsub/ -e qsub/ -V $submitscript
 
         sleep 1
 

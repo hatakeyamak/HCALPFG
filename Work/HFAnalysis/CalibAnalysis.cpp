@@ -65,12 +65,21 @@ int main(int argc, char *argv[]){
   double calib_QIE8_iphi39_depth2[13]={
     0.00,0.00,0.75,0.78,0.86,0.00,0.91,0.86,0.80,0.85,0.85,0.00,0.00};
 
+  // KH - Phi symmetry corrections for HF+ iphi=39 from 2015
+  double phicorr_iterative_iphi39_depth1_2015[13]={
+    1.0648,  0.7790,  0.8919,  0.9776,  0.9475,
+    1.0208,  1.0223,  1.0034,  1.0029,  1.0041,
+    1.0473,  0.9795,  1.0937};
+  double phicorr_iterative_iphi39_depth2_2015[13]={
+    0.9086,  0.8167,  0.8975,  0.9511,  0.9787,
+    1.0247,  1.0117,  0.9672,  1.0000,  0.9891,
+    0.9714,  0.9875,  1.0533};
   //KH -- Phi symmetry corrections for dual-anode energies (Q_A+Q_B based)
-  double phicorr_iterative_iphi39_depth1[13]={
+  double phicorr_iterative_iphi39_depth1_2016[13]={
     0.9729,  0.7523,  0.8372,  0.9338,  0.9452,
     1.0514,  0.9791,  0.9820,  0.9482,  0.9937,
     1.0188,  1.0000,  0.9086};
-  double phicorr_iterative_iphi39_depth2[13]={
+  double phicorr_iterative_iphi39_depth2_2016[13]={
     0.8253,  0.7775,  0.8587,  0.9340,  0.9856,
     1.0083,  1.0047,  0.9839,  0.9592,  0.9859,
     0.9596,  1.0000,  0.9301};
@@ -84,7 +93,10 @@ int main(int argc, char *argv[]){
   char tempname[200];
 
   ///read the file names from the .txt files and load them to a vector.
-  while(fin.getline(filenames, 500) ){filesVec.push_back(filenames);}
+  while(fin.getline(filenames, 500) ){
+    filesVec.push_back(filenames);
+    std::cout << filenames << std::endl;
+  }
   cout<< "\nProcessing " << subSampleKey << " ... " << endl;
 
   for(unsigned int in=0; in<filesVec.size(); in++){ sample_AUX->Add(filesVec.at(in).c_str()); }
@@ -162,7 +174,7 @@ int main(int argc, char *argv[]){
         Map_Charge[tempname]=HFCharge;
 
         if(iphi==39){
-	  sprintf(tempname,"ieta%d_iphi%d_depth%d_calib",ieta,iphi,depth);
+	  sprintf(tempname,"ieta%d_iphi%d_depth%d_calib2016",ieta,iphi,depth);
 	  Map_RecEnergy[tempname]=HFEnergy;
 
 	  sprintf(tempname,"ieta%d_iphinot%d_depth%d",ieta,iphi,depth);
@@ -194,6 +206,10 @@ int main(int argc, char *argv[]){
 		<< evt->HFDigiRCGain_()->at(ich)[2]
 		<< evt->HFDigiRCGain_()->at(ich)[3] << std::endl;
       */
+      int ieta_bin=ieta-29;
+      double calib_2015 = phicorr_iterative_iphi39_depth1_2015[ieta_bin];
+      if (depth==2) calib_2015 = phicorr_iterative_iphi39_depth2_2015[ieta_bin];
+      if (iphi==39 && ieta>=29) rcgain *= calib_2015;
 
       //
       // both qie10 anods 
@@ -212,8 +228,6 @@ int main(int argc, char *argv[]){
         int qie10chB=QIE10map(ieta, iphi,4);
         //printf("chA: %d ieta: %d iphi: %d depth: %d\n",qie10chA,evt->QIE10DigiIEta_()->at(qie10chA),evt->QIE10DigiIPhi_()->at(qie10chA),evt->QIE10DigiDepth_()->at(qie10chA));
         //printf("chB: %d ieta: %d iphi: %d depth: %d\n",qie10chB,evt->QIE10DigiIEta_()->at(qie10chB),evt->QIE10DigiIPhi_()->at(qie10chB),evt->QIE10DigiDepth_()->at(qie10chB));
-
-	int ieta_bin=ieta-29;
 
         for(int its=0;its<4;its++){
           if(evt->QIE10DigiSOI_()->at(qie10chB)[its]==1){
@@ -245,10 +259,10 @@ int main(int argc, char *argv[]){
             //Map_RecEnergy[tempname].Fill(rcgain*(evt->QIE10DigiFC_()->at(qie10chA)[its]+evt->QIE10DigiFC_()->at(qie10chB)[its]));
             Map_RecEnergy[tempname].Fill(rcgain*(qie1010ab));
 
-	    double calib = phicorr_iterative_iphi39_depth1[ieta_bin];
-	    if (depth==2) calib = phicorr_iterative_iphi39_depth2[ieta_bin];
+	    double calib_2016 = phicorr_iterative_iphi39_depth1_2016[ieta_bin];
+	    if (depth==2) calib_2016 = phicorr_iterative_iphi39_depth2_2016[ieta_bin];
 	    sprintf(tempname,"ieta%d_iphi%d_depth%d_calib",ieta,iphi,depth);
-	    Map_RecEnergy[tempname].Fill(rcgain*(qie1010ab)*calib);
+	    Map_RecEnergy[tempname].Fill(rcgain*(qie1010ab)*calib_2016);
 
             sprintf(tempname,"AnodeA_ieta%d_iphi%d_depth%d",ieta,iphi,depth);
             //Map_RecEnergy[tempname].Fill(rcgain*evt->QIE10DigiFC_()->at(qie10chA)[its]);
@@ -294,10 +308,10 @@ int main(int argc, char *argv[]){
             //Map_RecEnergy[tempname].Fill(rcgain*(evt->QIE10DigiFC_()->at(qie10ch)[its]+evt->HFDigiFC_()->at(ich)[2]+evt->HFDigiPedFC_()->at(ich)[2]));
             Map_RecEnergy[tempname].Fill(rcgain*(qie10a+qie8b));
 
-	    double calib = phicorr_iterative_iphi39_depth1[ieta_bin];
-	    if (depth==2) calib = phicorr_iterative_iphi39_depth2[ieta_bin];
+	    double calib_2016 = phicorr_iterative_iphi39_depth1_2016[ieta_bin];
+	    if (depth==2) calib_2016 = phicorr_iterative_iphi39_depth2_2016[ieta_bin];
 	    sprintf(tempname,"ieta%d_iphi%d_depth%d_calib",ieta,iphi,depth);
-	    Map_RecEnergy[tempname].Fill(rcgain*(qie10a+qie8b)*calib);
+	    Map_RecEnergy[tempname].Fill(rcgain*(qie10a+qie8b)*calib_2016);
 
 	    //
             sprintf(tempname,"AnodeA_ieta%d_iphi%d_depth%d",ieta,iphi,depth);
@@ -312,7 +326,7 @@ int main(int argc, char *argv[]){
 	    sprintf(tempname,"AnodeB_QIE8x2_ieta%d_iphi%d_depth%d",ieta,iphi,depth);
 	    Map_RecEnergy[tempname].Fill(rcgain*(qie8b)*2);
 	    //
-	    calib = calib_QIE8_iphi39_depth1[ieta_bin];
+	    double calib = calib_QIE8_iphi39_depth1[ieta_bin];
 	    if (depth==2) calib = calib_QIE8_iphi39_depth2[ieta_bin];
 	    sprintf(tempname,"AnodeB_QIE8calib_ieta%d_iphi%d_depth%d",ieta,iphi,depth);
 	    Map_RecEnergy[tempname].Fill(rcgain*(qie8b)*2*calib);
@@ -351,7 +365,7 @@ int main(int argc, char *argv[]){
 	       );
 	*/
         //Map_RecEnergy[tempname].Fill(rcgain*(evt->HFDigiFC_()->at(ich)[2]+evt->HFDigiPedFC_()->at(ich)[2])); // pedestal is added back
-	if (iphi==39 || iphi==35 || iphi==43)	
+	if (iphi==35 || iphi==43)	
 	  Map_RecEnergy[tempname].Fill(rcgain*(qie8b));
 	
         sprintf(tempname,"ieta%d_iphinot39_depth%d",ieta,depth);
